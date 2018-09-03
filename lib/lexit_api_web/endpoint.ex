@@ -37,6 +37,14 @@ defmodule LexitApiWeb.Endpoint do
 
   plug LexitApiWeb.Router
 
+  plug(
+    Corsica,
+    origins: "*",
+    log: [rejected: :error, invalid: :warn, accepted: :debug],
+    allow_headers: ["content-type"],
+    allow_credentials: true
+  )
+
   @doc """
   Callback invoked for dynamically configuring the endpoint.
 

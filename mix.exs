@@ -38,7 +38,8 @@ defmodule LexitApi.Mixfile do
       {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
       {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"}
+      {:cowboy, "~> 1.0"},
+      {:corsica, "~> 1.0"}
     ]
   end
 
@@ -55,4 +56,5 @@ defmodule LexitApi.Mixfile do
       "test": ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
+
 end

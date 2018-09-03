@@ -7,5 +7,6 @@ defmodule LexitApiWeb.Router do
 
   scope "/api", LexitApiWeb do
     pipe_through :api
+    resources "/projects", ProjectController, except: [:new, :edit]
   end
 end
