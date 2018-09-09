@@ -39,4 +39,36 @@ defmodule LexitApiWeb.ProjectController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def convert_text(conn, %{"data" => data}) do
+    converted_data = %{
+      :final_text => "",
+      :original_text => "",
+      :lexicon => "",
+      :link => ""
+    }
+
+    converted_data = data
+    |> Map.get("lexicon")
+    |> Map.get("name")
+    |> (&(put_in(converted_data.lexicon, &1))).()
+
+    converted_data = data
+    |> Map.get("lexicon")
+    |> Map.get("link")
+    |> (&(put_in(converted_data.link, &1))).()
+
+    converted_data = data
+    |> Map.get("text")
+    |> Map.get("content")
+    |> (&(put_in(converted_data.original_text, &1))).()
+
+    converted_data = String.replace(
+      converted_data[:original_text],
+      converted_data[:lexicon],
+      "[#{converted_data[:lexicon]}](#{converted_data[:link]})")
+      |> (&(put_in(converted_data.final_text, &1))).()
+
+    render(conn, "convert_text.json", result: converted_data[:final_text])
+  end
 end

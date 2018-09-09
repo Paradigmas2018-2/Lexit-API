@@ -15,4 +15,8 @@ defmodule LexitApiWeb.ProjectView do
       name: project.name,
       description: project.description}
   end
+
+  def render("convert_text.json", %{result: result}) do
+    %{result: result}
+  end
 end
