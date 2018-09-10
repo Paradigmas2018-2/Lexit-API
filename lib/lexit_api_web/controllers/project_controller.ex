@@ -6,38 +6,20 @@ defmodule LexitApiWeb.ProjectController do
 
   action_fallback LexitApiWeb.FallbackController
 
-  def index(conn, _params) do
-    projects = Lexit.list_projects()
-    render(conn, "index.json", projects: projects)
+  def replace_word(to_replace, lexicon, link) when to_replace == lexicon do
+    ["[#{to_replace}](#{link})"]
+  end
+  def replace_word(to_replace, lexicon, link) do
+    ["#{to_replace}"]
   end
 
-  def create(conn, %{"project" => project_params}) do
-    with {:ok, %Project{} = project} <- Lexit.create_project(project_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", project_path(conn, :show, project))
-      |> render("show.json", project: project)
-    end
+  def process_text([], lexicon, link) do
+    []
   end
-
-  def show(conn, %{"id" => id}) do
-    project = Lexit.get_project!(id)
-    render(conn, "show.json", project: project)
-  end
-
-  def update(conn, %{"id" => id, "project" => project_params}) do
-    project = Lexit.get_project!(id)
-
-    with {:ok, %Project{} = project} <- Lexit.update_project(project, project_params) do
-      render(conn, "show.json", project: project)
-    end
-  end
-
-  def delete(conn, %{"id" => id}) do
-    project = Lexit.get_project!(id)
-    with {:ok, %Project{}} <- Lexit.delete_project(project) do
-      send_resp(conn, :no_content, "")
-    end
+  def process_text(array, lexicon, link) do
+    hd(array)
+    |> replace_word(lexicon, link)
+    |> (&(Kernel.++(&1, process_text(tl(array), lexicon, link)))).()
   end
 
   def convert_text(conn, %{"data" => data}) do
@@ -47,6 +29,8 @@ defmodule LexitApiWeb.ProjectController do
       :lexicon => "",
       :link => ""
     }
+
+    # Mapping JSON data to local variable
 
     converted_data = data
     |> Map.get("lexicon")
@@ -63,11 +47,21 @@ defmodule LexitApiWeb.ProjectController do
     |> Map.get("content")
     |> (&(put_in(converted_data.original_text, &1))).()
 
-    converted_data = String.replace(
-      converted_data[:original_text],
-      converted_data[:lexicon],
-      "[#{converted_data[:lexicon]}](#{converted_data[:link]})")
+    list_of_words = String.split(converted_data[:original_text])
+
+    # Using custom made function
+
+    converted_data = process_text(list_of_words, converted_data[:lexicon], converted_data[:link])
+      |> Enum.join(" ")
       |> (&(put_in(converted_data.final_text, &1))).()
+
+    # Using String.replace
+
+    # converted_data = String.replace(
+    #   converted_data[:original_text],
+    #   converted_data[:lexicon],
+    #   "[#{converted_data[:lexicon]}](#{converted_data[:link]})")
+    #   |> (&(put_in(converted_data.final_text, &1))).()
 
     render(conn, "convert_text.json", result: converted_data[:final_text])
   end

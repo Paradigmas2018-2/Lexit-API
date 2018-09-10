@@ -7,7 +7,6 @@ defmodule LexitApiWeb.Router do
 
   scope "/", LexitApiWeb do
     pipe_through :api
-    resources "/projects", ProjectController, except: [:new, :edit]
     post "/convert_text", ProjectController, :convert_text
   end
 end
